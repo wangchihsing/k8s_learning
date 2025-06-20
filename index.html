@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes 學習筆記</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            color: white;
+        }
+        
+        .logo {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .main-title {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .date-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .date-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .date-header {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px 30px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .date-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+        
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .resource-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .resource-card:hover {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            transform: translateX(5px);
+        }
+        
+        .resource-card:nth-child(2n) {
+            border-left-color: #e74c3c;
+        }
+        
+        .resource-card:nth-child(2n):hover {
+            border-left-color: #c0392b;
+            background: #ffebee;
+        }
+        
+        .resource-card:nth-child(3n) {
+            border-left-color: #f39c12;
+        }
+        
+        .resource-card:nth-child(3n):hover {
+            border-left-color: #e67e22;
+            background: #fff3e0;
+        }
+        
+        .resource-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .resource-desc {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .resource-link {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 40px auto;
+            color: white;
+            max-width: 600px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .github-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <svg class="logo" viewBox="0 0 24 24" fill="white">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.18c5.423 0 9.82 4.397 9.82 9.82 0 5.423-4.397 9.82-9.82 9.82-5.423 0-9.82-4.397-9.82-9.82 0-5.423 4.397-9.82 9.82-9.82zM8.5 7a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm7 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3.5 6c-2.485 0-4.5 2.015-4.5 4.5h9c0-2.485-2.015-4.5-4.5-4.5z"/>
+        </svg>
+        <h1 class="main-title">Kubernetes 學習筆記</h1>
+        <p class="subtitle">探索容器編排的世界</p>
+    </header>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number">6</span>
+                <div class="stat-label">學習主題</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">1</span>
+                <div class="stat-label">更新日期</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">∞</span>
+                <div class="stat-label">學習熱忱</div>
+            </div>
+        </div>
+
+        <div class="date-section">
+            <div class="date-header">
+                📅 2025年6月19日 學習記錄
+            </div>
+            <div class="resource-grid">
+                <a href="2025.6.19/kubernetes-traffic-flow.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">🌐 Kubernetes Traffic Flow</div>
+                        <div class="resource-desc">深入了解 Kubernetes 中的流量流向、網路架構，以及 Pod 之間的通訊機制</div>
+                    </div>
+                </a>
+                
+                <a href="2025.6.19/kubernetes-tutorial.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">📚 Kubernetes Tutorial</div>
+                        <div class="resource-desc">從基礎到進階的 Kubernetes 完整教學，包含實作範例和最佳實踐</div>
+                    </div>
+                </a>
+                
+                <a href="2025.6.19/minikube-nodeport.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">🔧 Minikube NodePort</div>
+                        <div class="resource-desc">在 Minikube 本地環境中配置和使用 NodePort 服務的詳細指南</div>
+                    </div>
+                </a>
+                
+                <a href="2025.6.19/nodeport-comparison.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">⚖️ NodePort Comparison</div>
+                        <div class="resource-desc">比較不同 NodePort 配置方式的優缺點，幫助選擇最適合的方案</div>
+                    </div>
+                </a>
+                
+                <a href="2025.6.19/nodeport-troubleshooting.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">🔍 NodePort Troubleshooting</div>
+                        <div class="resource-desc">NodePort 常見問題的診斷方法和解決方案，讓你快速排除障礙</div>
+                    </div>
+                </a>
+                
+                <a href="2025.6.19/nodeport-vs-portforward.html" class="resource-link">
+                    <div class="resource-card">
+                        <div class="resource-title">🔄 NodePort vs Port Forward</div>
+                        <div class="resource-desc">詳細比較 NodePort 和 Port Forward 的使用場景和技術差異</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 可以在這裡新增更多日期的學習記錄 -->
+        <!-- 
+        <div class="date-section">
+            <div class="date-header">
+                📅 未來的學習記錄
+            </div>
+            <div class="resource-grid">
+                <div class="resource-card">
+                    <div class="resource-title">🚀 即將新增更多內容</div>
+                    <div class="resource-desc">持續學習，持續成長</div>
+                </div>
+            </div>
+        </div>
+        -->
+    </div>
+
+    <footer class="footer">
+        <p>專注於 Kubernetes 容器編排技術的學習與實踐</p>
+        <a href="https://github.com/wangchihsing/k8s_learning" class="github-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+            </svg>
+            查看 GitHub Repository
+        </a>
+    </footer>
+</body>
+</html>
