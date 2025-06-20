@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodePort vs Port-Forward 比較</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .method {
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .method.current {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border: 3px solid #e17055;
+        }
+        
+        .method.nodeport {
+            background: linear-gradient(135deg, #d1f2eb, #00b894);
+            border: 3px solid #00a085;
+        }
+        
+        .flow-step {
+            background: rgba(255,255,255,0.9);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .pros, .cons {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .pros {
+            background: #e8f5e8;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .cons {
+            background: #fde8e8;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .arrow {
+            font-size: 2em;
+            text-align: center;
+            color: #e74c3c;
+            margin: 10px 0;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .network-diagram {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .node {
+            display: inline-block;
+            padding: 15px 20px;
+            margin: 10px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .node.mac { background: #4ecdc4; }
+        .node.vm { background: #ffeaa7; color: #2d3436; }
+        .node.k8s { background: #a29bfe; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NodePort vs Port-Forward 詳細比較</h1>
+        
+        <div class="comparison">
+            <div class="method current">
+                <h2>🔧 你目前使用的方法：Port-Forward</h2>
+                
+                <div class="flow-step">
+                    <strong>命令：</strong>
+                    <div class="code-block">kubectl port-forward service/nginx-nodeport 9080:80 --address 0.0.0.0</div>
+                </div>
+                
+                <div class="flow-step">
+                    <strong>流量路徑：</strong>
+                    <div class="arrow">Mac:瀏覽器 ↓</div>
+                    <div class="arrow">虛擬機:9080 ↓</div>
+                    <div class="arrow">kubectl 轉發 ↓</div>
+                    <div class="arrow">Service:80 ↓</div>
+                    <div class="arrow">Pod:80</div>
+                </div>
+                
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ 優點</h4>
+                        <ul>
+                            <li>簡單易用</li>
+                            <li>可以選任意端口</li>
+                            <li>開發測試方便</li>
+                            <li>不需要網路配置</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ 缺點</h4>
+                        <ul>
+                            <li>需要保持命令執行</li>
+                            <li>不是「真正」的 NodePort</li>
+                            <li>只能一個連接</li>
+                            <li>不適合生產環境</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="method nodeport">
+                <h2>🌐 NodePort 的正確用法</h2>
+                
+                <div class="flow-step">
+                    <strong>設定：</strong>
+                    <div class="code-block"># 虛擬機上設定端口轉發
+sudo iptables -t nat -A PREROUTING -p tcp --dport 31000 -j DNAT --to-destination 192.168.49.2:31000
+sudo iptables -t nat -A POSTROUTING -j MASQUERADE</div>
+                </div>
+                
+                <div class="flow-step">
+                    <strong>訪問：</strong>
+                    <div class="code-block">curl http://192.168.200.196:31000</div>
+                </div>
+                
+                <div class="flow-step">
+                    <strong>流量路徑：</strong>
+                    <div class="arrow">Mac:瀏覽器 ↓</div>
+                    <div class="arrow">虛擬機:31000 ↓</div>
+                    <div class="arrow">Minikube:31000 ↓</div>
+                    <div class="arrow">Service:80 ↓</div>
+                    <div class="arrow">Pod:80</div>
+                </div>
+                
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>✅ 優點</h4>
+                        <ul>
+                            <li>真正的 K8s 功能</li>
+                            <li>支援多個連接</li>
+                            <li>適合生產環境</li>
+                            <li>持續可用</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>❌ 缺點</h4>
+                        <ul>
+                            <li>需要網路配置</li>
+                            <li>端口範圍限制</li>
+                            <li>設定較複雜</li>
+                            <li>需要管理員權限</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="network-diagram">
+            <h2>🔍 NodePort 31000 目前的狀態</h2>
+            <p><strong>NodePort 服務確實在運行，但被「困」在 Minikube 內部</strong></p>
+            
+            <div>
+                <div class="node mac">Mac</div>
+                <span style="font-size: 1.5em;">❌</span>
+                <div class="node k8s">Minikube:31000<br>(NodePort 在這裡)</div>
+            </div>
+            
+            <p style="margin: 20px 0;">Mac 無法直接連到 Minikube 的內部網路</p>
+            
+            <div>
+                <div class="node mac">Mac</div>
+                <span style="font-size: 1.5em;">✅</span>
+                <div class="node vm">虛擬機:31000</div>
+                <span style="font-size: 1.5em;">→</span>
+                <div class="node k8s">Minikube:31000</div>
+            </div>
+            
+            <p>需要虛擬機做「橋樑」轉發到 Minikube</p>
+        </div>
+        
+        <div style="background: #e8f4fd; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db;">
+            <h2>💡 總結：NodePort 31000 的真正價值</h2>
+            <p><strong>NodePort 31000 並沒有浪費！</strong>它的作用是：</p>
+            <ul>
+                <li><span class="highlight">在 Kubernetes 集群內提供統一的外部訪問點</span></li>
+                <li><span class="highlight">如果你的 Minikube 直接運行在實體機上，可以直接使用</span></li>
+                <li><span class="highlight">在雲端環境中，通常可以直接從外部訪問</span></li>
+                <li><span class="highlight">生產環境中的標準做法</span></li>
+            </ul>
+            
+            <p><strong>你的情況特殊在於：</strong>Minikube 運行在虛擬機內，所以需要額外的網路配置。</p>
+        </div>
+        
+        <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 5px solid #f39c12;">
+            <h2>🎯 實際建議</h2>
+            <p><strong>學習階段：</strong>繼續使用 port-forward，簡單有效</p>
+            <p><strong>進階練習：</strong>試試設定虛擬機的端口轉發，體驗真正的 NodePort</p>
+            <p><strong>生產環境：</strong>NodePort 是正確的選擇</p>
+        </div>
+    </div>
+</body>
+</html>
