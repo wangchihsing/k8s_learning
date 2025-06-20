@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes 學習資源 - 2025.6.19</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .resource-list {
+            list-style: none;
+            padding: 0;
+        }
+        .resource-item {
+            background: #f8f9fa;
+            margin: 10px 0;
+            border-radius: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .resource-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .resource-link {
+            display: block;
+            padding: 20px;
+            text-decoration: none;
+            color: #2c3e50;
+            border-left: 4px solid #3498db;
+        }
+        .resource-link:hover {
+            color: #3498db;
+        }
+        .resource-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .resource-desc {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .date-info {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .kubernetes-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <svg class="kubernetes-icon" viewBox="0 0 24 24" fill="#3498db">
+                <path d="M12 2L1 7v10l11 5 11-5V7L12 2zm0 2.18L20.82 8 12 12.82 3.18 8 12 4.18zM3 9.18l8 4.64v8.36l-8-4.64V9.18zm18 0v8.36l-8 4.64v-8.36l8-4.64z"/>
+            </svg>
+            Kubernetes 學習資源
+        </h1>
+        
+        <ul class="resource-list">
+            <li class="resource-item">
+                <a href="kubernetes-traffic-flow.html" class="resource-link">
+                    <div class="resource-title">Kubernetes Traffic Flow</div>
+                    <div class="resource-desc">了解 Kubernetes 中的流量流向和網路架構</div>
+                </a>
+            </li>
+            
+            <li class="resource-item">
+                <a href="kubernetes-tutorial.html" class="resource-link">
+                    <div class="resource-title">Kubernetes Tutorial</div>
+                    <div class="resource-desc">Kubernetes 基礎教學和實作指南</div>
+                </a>
+            </li>
+            
+            <li class="resource-item">
+                <a href="minikube-nodeport.html" class="resource-link">
+                    <div class="resource-title">Minikube NodePort</div>
+                    <div class="resource-desc">在 Minikube 中使用 NodePort 服務的配置方法</div>
+                </a>
+            </li>
+            
+            <li class="resource-item">
+                <a href="nodeport-comparison.html" class="resource-link">
+                    <div class="resource-title">NodePort Comparison</div>
+                    <div class="resource-desc">不同 NodePort 配置方式的比較和分析</div>
+                </a>
+            </li>
+            
+            <li class="resource-item">
+                <a href="nodeport-troubleshooting.html" class="resource-link">
+                    <div class="resource-title">NodePort Troubleshooting</div>
+                    <div class="resource-desc">NodePort 常見問題排除和解決方案</div>
+                </a>
+            </li>
+            
+            <li class="resource-item">
+                <a href="nodeport-vs-portforward.html" class="resource-link">
+                    <div class="resource-title">NodePort vs Port Forward</div>
+                    <div class="resource-desc">NodePort 和 Port Forward 的差異比較</div>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="date-info">
+            最後更新：2025年6月19日
+        </div>
+    </div>
+</body>
+</html>
