@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Psychedelic Animation</title>
+    <style>
+        body { margin: 0; background: #000; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <script>
+        import React, { useEffect, useRef, useState } from 'react';
+
+const BlackWhitePsychedelicAnimation: React.FC = () => {
+    const canvasRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 120, height: 40 });
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        let { width, height } = dimensions;
+        let grid: { char: string; color: string; intensity: number }[][] = [];
+        let time = 0;
+        let animationFrameId: number;
+        
+        // Extended character sets for different intensities
+        const highIntensityChars = ['██', '▉', '▊', '▋', '▌', '▍', '▎', '▏', '█', '◉', '◎', '●', '◐', '◑', '◒', '◓'];
+        const mediumIntensityChars = ['▓', '▒', '░', '▪', '▫', '■', '□', '◆', '◇', '▲', '▼', '◀', '▶', '★', '☆'];
+        const lowIntensityChars = ['·', '∘', '⋅', '∙', '‧', '•', '○', '◦', '⚬', '⚭', '⚮', '⚯'];
+        const noiseChars = ['~', '≈', '∿', '⁓', '∼', '∽', '≋', '≍', '≎', '≏'];
+        const geometricChars = ['◢', '◣', '◤', '◥', '◪', '◫', '◬', '◭', '◮', '◯', '⬢', '⬡', '⬟', '⬠'];
+        const textureChars = ['▗', '▖', '▘', '▝', '▞', '▚', '▟', '▙', '▛', '▜'];
+        
+        function initGrid() {
+            grid = [];
+            for (let y = 0; y < height; y++) {
+                let row = [];
+                for (let x = 0; x < width; x++) {
+                    row.push({ char: '·', color: '#444444', intensity: 0 });
+                }
+                grid.push(row);
+            }
+        }
+        
+        function render() {
+            if (!canvas) return;
+            
+            let html = '';
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const cell = grid[y][x];
+                    // Add pulsing glow effect for high intensity cells
+                    const glowEffect = cell.intensity > 0.8 ? `text-shadow: 0 0 8px ${cell.color}, 0 0 16px ${cell.color};` : 
+                                     cell.intensity > 0.5 ? `text-shadow: 0 0 4px ${cell.color};` : '';
+                    html += `<span style="color: ${cell.color}; ${glowEffect}">${cell.char}</span>`;
+                }
+                html += '\n';
+            }
+            canvas.innerHTML = `<pre style="margin: 0; line-height: 0.95;">${html}</pre>`;
+        }
+        
+        function update() {
+            const t = time * 0.06;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Clear grid with dynamic background
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    grid[y][x] = { char: ' ', color: '#222222', intensity: 0 };
+                }
+            }
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Multiple layered patterns
+                    let totalIntensity = 0;
+                    let patternType = 0;
+                    
+                    // Pattern 1: Expanding ripples with interference
+                    const ripple1 = Math.sin(dist * 0.5 - t * 4);
+                    const ripple2 = Math.sin(dist * 0.3 + t * 3);
+                    const rippleInterference = ripple1 * ripple2;
+                    const rippleIntensity = Math.abs(rippleInterference) > 0.4 ? 1 : 0;
+                    
+                    // Pattern 2: Rotating spiral arms (multiple)
+                    const spiral1 = Math.sin(angle * 6 + t * 2 - dist * 0.2);
+                    const spiral2 = Math.sin(angle * 12 - t * 1.5 + dist * 0.15);
+                    const spiralIntensity = (Math.abs(spiral1) > 0.7 || Math.abs(spiral2) > 0.6) ? 1 : 0;
+                    
+                    // Pattern 3: Kaleidoscope mandala
+                    const mandala = Math.sin(angle * 8 + t) * Math.cos(dist * 0.4 + t * 1.2) * Math.sin(angle * 16 - t * 2);
+                    const mandalaIntensity = Math.abs(mandala) > 0.5 ? 1 : 0;
+                    
+                    // Pattern 4: Heart equation
+                    const heartX = dx / 6;
+                    const heartY = -dy / 6;
+                    const heart = Math.pow(heartX * heartX + heartY * heartY - 1, 3) - heartX * heartX * heartY * heartY * heartY;
+                    const heartIntensity = (heart < 0.15 && heart > -0.1) ? 1 : 0;
+                    
+                    // Pattern 5: Flower petals (dynamic count)
+                    const petalCount = 6 + Math.floor(Math.sin(t * 0.5) * 3);
+                    const petalRadius = 8 + Math.sin(t * 1.8) * 4;
+                    const flowerAngle = angle + t * 0.3;
+                    const flower = Math.sin(flowerAngle * petalCount) * 3 + petalRadius;
+                    const flowerIntensity = Math.abs(dist - flower) < 2.5 ? 1 : 0;
+                    
+                    // Pattern 6: DNA double helix
+                    const helixRadius = 6;
+                    const helixY = y - centerY;
+                    const helix1 = centerX + Math.sin(helixY * 0.4 + t * 2.5) * helixRadius;
+                    const helix2 = centerX + Math.sin(helixY * 0.4 + t * 2.5 + Math.PI) * helixRadius;
+                    const helixIntensity = (Math.abs(x - helix1) < 1.8 || Math.abs(x - helix2) < 1.8) ? 1 : 0;
+                    
+                    // Pattern 7: Fractal tree branches
+                    const treeX = Math.abs(dx);
+                    const treeY = dy + height/4;
+                    const branch1 = (treeX < 2 && treeY > 0 && treeY < 12);
+                    const branch2 = (Math.abs(treeX - treeY * 0.4) < 1 && treeY > 8 && treeY < 18);
+                    const branch3 = (Math.abs(treeX + treeY * 0.4) < 1 && treeY > 8 && treeY < 18);
+                    const treeIntensity = (branch1 || branch2 || branch3) ? 1 : 0;
+                    
+                    // Pattern 8: Geometric maze
+                    const mazeX = Math.floor(x / 4) % 2;
+                    const mazeY = Math.floor(y / 3) % 2;
+                    const mazePattern = Math.sin(t * 3 + x * 0.5 + y * 0.3);
+                    const mazeIntensity = (mazeX ^ mazeY) && Math.abs(mazePattern) > 0.3 ? 1 : 0;
+                    
+                    // Pattern 9: Lissajous curves
+                    const lissX = Math.sin(t * 2 + angle * 3) * 15;
+                    const lissY = Math.cos(t * 1.7 + angle * 5) * 10;
+                    const lissIntensity = (Math.abs(dx - lissX) < 2 && Math.abs(dy - lissY) < 2) ? 1 : 0;
+                    
+                    // Pattern 10: Cellular automata
+                    const cellX = Math.floor(x / 3);
+                    const cellY = Math.floor(y / 3);
+                    const cellPattern = Math.sin(cellX + cellY + t * 4);
+                    const cellIntensity = Math.abs(cellPattern) > 0.6 ? 1 : 0;
+                    
+                    // Pattern 11: Tunnel effect
+                    const tunnelRadius = 5 + Math.sin(t * 2) * 3;
+                    const tunnelDist = Math.abs(dist - tunnelRadius);
+                    const tunnelIntensity = (tunnelDist < 1.5 && Math.sin(angle * 20 + t * 5) > 0) ? 1 : 0;
+                    
+                    // Pattern 12: Interference waves
+                    const wave1 = Math.sin(x * 0.3 + t * 3);
+                    const wave2 = Math.sin(y * 0.4 - t * 2.5);
+                    const waveInterference = wave1 * wave2;
+                    const waveIntensity = Math.abs(waveInterference) > 0.5 ? 1 : 0;
+                    
+                    // Time-based pattern switching with overlays
+                    const mainPattern = Math.floor(t * 0.2) % 12;
+                    const overlayPattern = Math.floor(t * 0.15 + 3) % 12;
+                    
+                    const patterns = [
+                        rippleIntensity, spiralIntensity, mandalaIntensity, heartIntensity,
+                        flowerIntensity, helixIntensity, treeIntensity, mazeIntensity,
+                        lissIntensity, cellIntensity, tunnelIntensity, waveIntensity
+                    ];
+                    
+                    const mainIntensity = patterns[mainPattern];
+                    const overlayIntense = patterns[overlayPattern];
+                    
+                    // Combine patterns with interference
+                    if (mainIntensity && overlayIntense) {
+                        totalIntensity = 1.0;
+                        patternType = 4; // Maximum intensity
+                    } else if (mainIntensity) {
+                        totalIntensity = 0.8;
+                        patternType = 3; // High intensity
+                    } else if (overlayIntense) {
+                        totalIntensity = 0.6;
+                        patternType = 2; // Medium intensity
+                    }
+                    
+                    // Add base noise layer
+                    const noise = Math.sin(x * 0.2 + y * 0.15 + t * 1.5) * Math.cos(x * 0.1 - y * 0.2 + t);
+                    if (Math.abs(noise) > 0.7 && totalIntensity < 0.3) {
+                        totalIntensity = 0.4;
+                        patternType = 1; // Low intensity
+                    }
+                    
+                    // Character and color assignment based on intensity
+                    let char = '·';
+                    let color = '#333333';
+                    
+                    if (patternType === 4) {
+                        // Maximum intensity - solid blocks with animation
+                        const animIndex = Math.floor(t * 8 + x + y) % highIntensityChars.length;
+                        char = highIntensityChars[animIndex];
+                        color = '#FFFFFF';
+                    } else if (patternType === 3) {
+                        // High intensity - geometric shapes
+                        const shapeIndex = Math.floor((angle * 3 + dist * 0.3 + t * 6) % geometricChars.length);
+                        char = geometricChars[shapeIndex];
+                        color = '#EEEEEE';
+                    } else if (patternType === 2) {
+                        // Medium intensity - textured blocks
+                        const textIndex = Math.floor((x * 0.5 + y * 0.7 + t * 4) % textureChars.length);
+                        char = textureChars[textIndex];
+                        color = '#BBBBBB';
+                    } else if (patternType === 1) {
+                        // Low intensity - noise
+                        const noiseIndex = Math.floor((x + y * 2 + t * 3) % noiseChars.length);
+                        char = noiseChars[noiseIndex];
+                        color = '#777777';
+                    } else {
+                        // Background fill
+                        const bgIndex = Math.floor((x * 0.3 + y * 0.2 + t * 0.5) % lowIntensityChars.length);
+                        char = lowIntensityChars[bgIndex];
+                        color = '#444444';
+                    }
+                    
+                    // Add random glitch effects
+                    if (Math.random() < 0.008) {
+                        char = highIntensityChars[Math.floor(Math.random() * highIntensityChars.length)];
+                        color = '#FFFFFF';
+                        totalIntensity = 1.0;
+                    }
+                    
+                    // Breathing effect on brightness
+                    const breathe = Math.sin(t * 5 + dist * 0.08) * 0.3 + 0.7;
+                    const brightness = Math.floor(parseInt(color.slice(1, 3), 16) * breathe);
+                    const adjustedColor = `#${brightness.toString(16).padStart(2, '0').repeat(3)}`;
+                    
+                    // Store result
+                    grid[y][x] = { 
+                        char: char, 
+                        color: adjustedColor, 
+                        intensity: totalIntensity 
+                    };
+                }
+            }
+            
+            // Add scanning line effect
+            const scanLine = Math.floor((Math.sin(t * 6) + 1) * height / 2);
+            for (let x = 0; x < width; x++) {
+                if (scanLine >= 0 && scanLine < height) {
+                    grid[scanLine][x].color = '#FFFFFF';
+                    grid[scanLine][x].intensity = 1.0;
+                }
+            }
+            
+            // Add trailing effects
+            for (let i = 0; i < 8; i++) {
+                const trailX = Math.floor(Math.sin(t * 4 + i) * width/4 + width/2);
+                const trailY = Math.floor(Math.cos(t * 3 + i) * height/4 + height/2);
+                if (trailX >= 0 && trailX < width && trailY >= 0 && trailY < height) {
+                    grid[trailY][trailX].char = '●';
+                    grid[trailY][trailX].color = '#FFFFFF';
+                    grid[trailY][trailX].intensity = 0.9;
+                }
+            }
+            
+            time++;
+        }
+        
+        function animate() {
+            update();
+            render();
+            animationFrameId = requestAnimationFrame(animate);
+        }
+        
+        initGrid();
+        animate();
+
+        return () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        };
+    }, [dimensions]);
+
+    // Handle window resize
+    useEffect(() => {
+        const handleResize = () => {
+            const newWidth = Math.floor(window.innerWidth / 9);
+            const newHeight = Math.floor(window.innerHeight / 16);
+            setDimensions({ width: newWidth, height: newHeight });
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return (
+        <div style={{ 
+            margin: 0,
+            padding: 0,
+            background: 'linear-gradient(45deg, #000000 0%, #111111 50%, #000000 100%)',
+            overflow: 'hidden',
+            fontFamily: 'Courier New, monospace',
+            height: '100vh',
+            width: '100vw',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'backgroundPulse 8s ease-in-out infinite'
+        }}>
+            <style>{`
+                @keyframes backgroundPulse {
+                    0% { background: linear-gradient(45deg, #000000 0%, #111111 50%, #000000 100%); }
+                    25% { background: linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%); }
+                    50% { background: linear-gradient(225deg, #000000 0%, #111111 50%, #000000 100%); }
+                    75% { background: linear-gradient(315deg, #000000 0%, #0a0a0a 50%, #000000 100%); }
+                    100% { background: linear-gradient(45deg, #000000 0%, #111111 50%, #000000 100%); }
+                }
+                
+                body, html {
+                    margin: 0;
+                    padding: 0;
+                    overflow: hidden;
+                    background: #000000;
+                }
+                
+                pre {
+                    font-size: 7px;
+                    white-space: pre;
+                    word-wrap: break-word;
+                }
+            `}</style>
+            <div 
+                ref={canvasRef}
+                style={{
+                    userSelect: 'none',
+                    filter: 'contrast(1.5) brightness(1.2)',
+                    fontSize: '7px',
+                    lineHeight: '0.9',
+                    letterSpacing: '0.5px'
+                }}
+            />
+        </div>
+    );
+};
+
+export default BlackWhitePsychedelicAnimation;
+    </script>
+</body>
+</html>
